@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: Minituyendung    
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/recruitment}
+    username: ${DB_USERNAME:recruitment}
+    password: ${DB_PASSWORD:recruitment}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+server:
+  port: ${SERVER_PORT:8080}
