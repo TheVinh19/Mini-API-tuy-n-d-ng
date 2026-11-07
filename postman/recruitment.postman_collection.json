@@ -1,0 +1,452 @@
+{
+  "info": {
+    "name": "Mini recruitment API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run in order. Creates its own company/jobs and checks successful and rejected requests."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "companyId",
+      "value": ""
+    },
+    {
+      "key": "jobId",
+      "value": ""
+    },
+    {
+      "key": "temporaryJobId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Create company",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/companies",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"ACME\",\n  \"address\": \"HCM\",\n  \"website\": \"https://example.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) { pm.collectionVariables.set(\"companyId\", pm.response.json().id); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - List companies",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/companies"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Get company",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/companies/{{companyId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Create OPEN job",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/jobs",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"companyId\": {{companyId}},\n  \"title\": \"Java Backend Developer\",\n  \"description\": \"Spring Boot REST API\",\n  \"salaryFrom\": 15000000,\n  \"salaryTo\": 25000000,\n  \"location\": \"HCM\",\n  \"status\": \"OPEN\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) { pm.collectionVariables.set(\"jobId\", pm.response.json().id); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Search jobs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/jobs?keyword=java&location=hcm&status=OPEN&page=0&size=10&sort=salaryFrom,asc"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Get job",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/jobs/{{jobId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Submit application",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/jobs/{{jobId}}/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Nguyễn Văn An\",\n  \"email\": \" AN@Example.com \",\n  \"cvUrl\": \"https://example.com/cv/an.pdf\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Reject duplicate email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/jobs/{{jobId}}/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Nguyễn Văn An\",\n  \"email\": \"an@example.com\",\n  \"cvUrl\": \"https://example.com/cv/an.pdf\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });",
+              "pm.test(\"Consistent JSON error\", function () { const error = pm.response.json(); pm.expect(error.status).to.eql(409); [\"timestamp\", \"code\", \"message\", \"path\", \"fieldErrors\"].forEach(key => pm.expect(error).to.have.property(key)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Reject deleting job with applications",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/jobs/{{jobId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });",
+              "pm.test(\"Consistent JSON error\", function () { const error = pm.response.json(); pm.expect(error.status).to.eql(409); [\"timestamp\", \"code\", \"message\", \"path\", \"fieldErrors\"].forEach(key => pm.expect(error).to.have.property(key)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Close job",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/jobs/{{jobId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"companyId\": {{companyId}},\n  \"title\": \"Java Backend Developer\",\n  \"description\": \"Spring Boot REST API\",\n  \"salaryFrom\": 15000000,\n  \"salaryTo\": 25000000,\n  \"location\": \"HCM\",\n  \"status\": \"CLOSED\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Reject CLOSED job application",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/jobs/{{jobId}}/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Other applicant\",\n  \"email\": \"other@example.com\",\n  \"cvUrl\": \"https://example.com/cv/other.pdf\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });",
+              "pm.test(\"Consistent JSON error\", function () { const error = pm.response.json(); pm.expect(error.status).to.eql(409); [\"timestamp\", \"code\", \"message\", \"path\", \"fieldErrors\"].forEach(key => pm.expect(error).to.have.property(key)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Reject invalid company",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/companies",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"\",\n  \"address\": \"\",\n  \"website\": \"bad-url\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+              "pm.test(\"Consistent JSON error\", function () { const error = pm.response.json(); pm.expect(error.status).to.eql(400); [\"timestamp\", \"code\", \"message\", \"path\", \"fieldErrors\"].forEach(key => pm.expect(error).to.have.property(key)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Reject missing job",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/jobs/999999999"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+              "pm.test(\"Consistent JSON error\", function () { const error = pm.response.json(); pm.expect(error.status).to.eql(404); [\"timestamp\", \"code\", \"message\", \"path\", \"fieldErrors\"].forEach(key => pm.expect(error).to.have.property(key)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Reject deleting company with jobs",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/companies/{{companyId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });",
+              "pm.test(\"Consistent JSON error\", function () { const error = pm.response.json(); pm.expect(error.status).to.eql(409); [\"timestamp\", \"code\", \"message\", \"path\", \"fieldErrors\"].forEach(key => pm.expect(error).to.have.property(key)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Create deletable job",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/jobs",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"companyId\": {{companyId}},\n  \"title\": \"Temporary job\",\n  \"description\": \"CRUD delete example\",\n  \"salaryFrom\": 0,\n  \"salaryTo\": 100,\n  \"location\": \"HCM\",\n  \"status\": \"OPEN\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) { pm.collectionVariables.set(\"temporaryJobId\", pm.response.json().id); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Delete empty job",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/jobs/{{temporaryJobId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
