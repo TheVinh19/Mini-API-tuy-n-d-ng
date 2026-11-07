@@ -146,6 +146,14 @@ Response:
 
 `POST http://localhost:8080/jobs/1/applications` (thay `1` bằng ID Job thực tế):
 
+Thanh địa chỉ trình duyệt gửi **GET**, nên mở URL này trực tiếp sẽ trả `405 METHOD_NOT_ALLOWED` với header `Allow: POST`. Để nộp hồ sơ, dùng Postman:
+
+1. Chọn phương thức **POST**, nhập URL trên với ID của Job đang **OPEN**.
+2. Chọn **Body → raw → JSON**. Postman sẽ thêm `Content-Type: application/json`.
+3. Dán body dưới đây rồi bấm **Send**. Lần nộp hợp lệ đầu tiên trả `201 Created`.
+
+Nếu chưa có Company/Job, chạy collection trong mục Postman theo thứ tự để tự tạo dữ liệu và điền ID.
+
 ```json
 {
   "fullName": "Nguyễn Văn An",
@@ -172,6 +180,7 @@ Response chứa `id`, `jobId`, `fullName`, `email`, `cvUrl`, `appliedAt`. Không
 - `400`: thiếu trường, sai định dạng email/URL, khoảng lương sai, JSON lỗi, enum/tham số sai. Validation trả chi tiết trong `fieldErrors`.
 - `404`: không có Company/Job hoặc endpoint không tồn tại.
 - `409`: Job đóng, hồ sơ trùng, xóa dữ liệu còn tham chiếu hoặc xung đột ràng buộc DB.
+- `405`: gọi sai phương thức HTTP; response JSON giữ cùng cấu trúc, header `Allow` cho biết phương thức được hỗ trợ.
 
 ## 5. Test
 
@@ -182,7 +191,7 @@ Response chứa `id`, `jobId`, `fullName`, `email`, `cvUrl`, `appliedAt`. Không
 Mặc định test dùng **H2 ở PostgreSQL compatibility mode**, chạy migration thật, không cần bật Docker. H2 không thay thế hoàn toàn việc kiểm tra PostgreSQL.
 
 - 13 unit test service bằng JUnit 5 / Mockito: tạo dữ liệu, Company không tồn tại, lương sai, OPEN/CLOSED, trùng email trong Job, dùng lại email ở Job khác, chuẩn hóa email, xóa dữ liệu có liên quan, tham số tìm kiếm sai.
-- 9 integration test qua MockMvc: CRUD, filter + sort + phân trang, ký tự wildcard, nghiệp vụ nộp hồ sơ, constraint unique, hai request đồng thời, validation và cấu trúc lỗi.
+- 10 integration test qua MockMvc: CRUD, filter + sort + phân trang, ký tự wildcard, nghiệp vụ nộp hồ sơ, constraint unique, hai request đồng thời, validation, cấu trúc lỗi và lỗi 405 khi mở endpoint POST bằng trình duyệt.
 - 1 test khởi động application context.
 
 Có thể chạy cùng bộ test với **database PostgreSQL riêng dành cho test**:
@@ -208,7 +217,7 @@ Cũng có thể chạy bằng Postman CLI khi backend đang chạy:
 postman collection run postman/recruitment.postman_collection.json --no-report-events
 ```
 
-Đã kiểm tra build và 23 test trên cả H2 và PostgreSQL 17; collection chạy qua HTTP thật đạt 16/16 request, 22/22 assertion.
+Đã kiểm tra build và 24 test trên cả H2 và PostgreSQL 17; collection chạy qua HTTP thật đạt 16/16 request, 22/22 assertion.
 
 ## 7. Cấu trúc
 

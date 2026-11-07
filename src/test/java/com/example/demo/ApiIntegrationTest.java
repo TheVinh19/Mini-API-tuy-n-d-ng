@@ -34,6 +34,19 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void browserGetToApplicationEndpointReturnsJsonAndAllowedMethod() throws Exception {
+        mvc.perform(get("/jobs/1/applications").accept(MediaType.TEXT_HTML))
+            .andExpect(status().isMethodNotAllowed())
+            .andExpect(header().string("Allow", "POST"))
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(405))
+            .andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+            .andExpect(jsonPath("$.path").value("/jobs/1/applications"))
+            .andExpect(jsonPath("$.fieldErrors").isEmpty());
+    }
+
+    @Test
     void companyCrudLifecycle() throws Exception {
         long id = createCompany();
         mvc.perform(get("/companies/{id}", id)).andExpect(status().isOk()).andExpect(jsonPath("$.name").value("ACME"));
